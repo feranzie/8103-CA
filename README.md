@@ -3,7 +3,7 @@
 
 ## Organisation/scenario: A multi-department hospital, with an outpatient clinic and a small pharmacy.
 
-## Nature of the system: Patient administration, appointment scheduling, clinical records, prescriptions, lab requests and billing.
+## Nature of the system: Patient administration, appointment scheduling, clinical records, prescriptions.
 
 ## Users: hospital staff and patients through a portal.
 
