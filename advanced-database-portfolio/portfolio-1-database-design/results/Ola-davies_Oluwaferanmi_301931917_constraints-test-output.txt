@@ -1,0 +1,138 @@
+(base) oluwaferanmiola-davies@Oluwaferanmis-MacBook-Pro 8103-CA % docker exec -it my-postgres psql -U postgres -h localhost -d hospital -f Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql   
+SET search_path TO hospital;
+SET
+
+=== SETUP: one test patient, one test doctor, one valid appointment ===
+INSERT INTO patient (first_name, last_name, date_of_birth, sex)
+VALUES ('Test', 'Patient', DATE '1990-05-10', 'F')
+RETURNING patient_id AS test_patient 
+INSERT 0 1
+INSERT INTO doctor (first_name, last_name, specialty)
+VALUES ('Test', 'Doctor', 'General Practice')
+RETURNING doctor_id AS test_doctor 
+INSERT 0 1
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-01-01 09:00:00+01', TIMESTAMPTZ '2030-01-01 09:30:00+01')
+RETURNING appointment_id AS test_appt 
+INSERT 0 1
+
+=== TEST 1 (EXPECT FAIL): overlapping appointment for the same doctor ===
+    Rule: no_doctor_double_booking (exclusion constraint)
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-01-01 09:15:00+01', TIMESTAMPTZ '2030-01-01 09:45:00+01');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:25: ERROR:  conflicting key value violates exclusion constraint "no_doctor_double_booking"
+DETAIL:  Key (doctor_id, tstzrange(scheduled_start, scheduled_end))=(2, ["2030-01-01 08:15:00+00","2030-01-01 08:45:00+00")) conflicts with existing key (doctor_id, tstzrange(scheduled_start, scheduled_end))=(2, ["2030-01-01 08:00:00+00","2030-01-01 08:30:00+00")).
+
+=== TEST 2 (EXPECT SUCCESS): back-to-back slot, 09:30 to 10:00 ===
+    Adjacent slots do not overlap, so this is allowed
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-01-01 09:30:00+01', TIMESTAMPTZ '2030-01-01 10:00:00+01');
+INSERT 0 1
+
+=== TEST 3 (EXPECT SUCCESS): a cancelled slot can be rebooked ===
+UPDATE appointment SET status = 'cancelled' WHERE appointment_id = 8;
+UPDATE 1
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-01-01 09:00:00+01', TIMESTAMPTZ '2030-01-01 09:30:00+01');
+INSERT 0 1
+
+=== TEST 4 (EXPECT FAIL): appointment ends before it starts ===
+    Rule: CHECK scheduled_end > scheduled_start
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-02-01 10:00:00+01', TIMESTAMPTZ '2030-02-01 09:00:00+01');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:46: ERROR:  new row for relation "appointment" violates check constraint "appointment_check"
+DETAIL:  Failing row contains (12, 5, 2, 2030-02-01 09:00:00+00, 2030-02-01 08:00:00+00, booked, null, null).
+
+=== TEST 5 (EXPECT FAIL): invalid appointment status ===
+    Rule: CHECK status IN (booked, completed, cancelled)
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end, status)
+VALUES (5, 2,
+        TIMESTAMPTZ '2030-03-01 09:00:00+01', TIMESTAMPTZ '2030-03-01 09:30:00+01', 'pending');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:53: ERROR:  new row for relation "appointment" violates check constraint "appointment_status_check"
+DETAIL:  Failing row contains (13, 5, 2, 2030-03-01 08:00:00+00, 2030-03-01 08:30:00+00, pending, null, null).
+
+=== TEST 6 (EXPECT FAIL): appointment for a patient that does not exist ===
+    Rule: FOREIGN KEY appointment.patient_id
+INSERT INTO appointment (patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (999999999, 2,
+        TIMESTAMPTZ '2030-04-01 09:00:00+01', TIMESTAMPTZ '2030-04-01 09:30:00+01');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:60: ERROR:  insert or update on table "appointment" violates foreign key constraint "appointment_patient_id_fkey"
+DETAIL:  Key (patient_id)=(999999999) is not present in table "patient".
+
+=== TEST 7 (EXPECT FAIL): patient born in the future ===
+    Rule: CHECK date_of_birth <= CURRENT_DATE
+INSERT INTO patient (first_name, last_name, date_of_birth, sex)
+VALUES ('Future', 'Baby', CURRENT_DATE + 30, 'M');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:66: ERROR:  new row for relation "patient" violates check constraint "patient_date_of_birth_check"
+DETAIL:  Failing row contains (6, Future, Baby, 2026-12-08, M, null, null).
+
+=== TEST 8 (EXPECT FAIL): invalid sex code ===
+    Rule: CHECK sex IN (M, F)
+INSERT INTO patient (first_name, last_name, date_of_birth, sex)
+VALUES ('Bad', 'Code', DATE '1985-01-01', 'X');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:72: ERROR:  new row for relation "patient" violates check constraint "patient_sex_check"
+DETAIL:  Failing row contains (7, Bad, Code, 1985-01-01, X, null, null).
+
+=== TEST 9 (EXPECT FAIL): patient with no first name ===
+    Rule: NOT NULL first_name
+INSERT INTO patient (first_name, last_name, date_of_birth, sex)
+VALUES (NULL, 'Nameless', DATE '1985-01-01', 'M');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:78: ERROR:  null value in column "first_name" of relation "patient" violates not-null constraint
+DETAIL:  Failing row contains (8, null, Nameless, 1985-01-01, M, null, null).
+
+=== TEST 10 (EXPECT FAIL): prescription lasting 0 days ===
+    Rule: CHECK duration_days > 0
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (8, 'Paracetamol 500mg', '1 tablet', 'Twice daily', 0);
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:84: ERROR:  new row for relation "prescription" violates check constraint "prescription_duration_days_check"
+DETAIL:  Failing row contains (3, 8, Paracetamol 500mg, 1 tablet, Twice daily, 0, 2026-11-08 20:45:40.832499+00).
+
+=== TEST 11 (EXPECT FAIL): lab result time before request time ===
+    Rule: CHECK resulted_at IS NULL OR resulted_at >= requested_at
+INSERT INTO lab_record (appointment_id, test_name, result_value, status, requested_at, resulted_at)
+VALUES (8, 'Blood glucose', 'Normal', 'completed',
+        TIMESTAMPTZ '2030-01-01 10:00:00+01', TIMESTAMPTZ '2030-01-01 09:00:00+01');
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:91: ERROR:  new row for relation "lab_record" violates check constraint "lab_record_check"
+DETAIL:  Failing row contains (3, 8, Blood glucose, Normal, completed, 2030-01-01 09:00:00+00, 2030-01-01 08:00:00+00).
+
+=== TEST 12 (EXPECT FAIL): delete a patient who has appointments ===
+    Rule: FOREIGN KEY with NO ACTION protects clinical history
+DELETE FROM patient WHERE patient_id = 5;
+psql:Ola-davies_Oluwaferanmi_301931917_constraint-tests.sql:96: ERROR:  update or delete on table "patient" violates foreign key constraint "appointment_patient_id_fkey" on table "appointment"
+DETAIL:  Key (patient_id)=(5) is still referenced from table "appointment".
+
+=== TEST 13 (EXPECT SUCCESS): valid prescription and lab record ===
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (8, 'Paracetamol 500mg', '1 tablet', 'Twice daily', 5);
+INSERT 0 1
+INSERT INTO lab_record (appointment_id, test_name) VALUES (8, 'Blood glucose');
+INSERT 0 1
+
+=== CLEANUP: remove all test data ===
+DELETE FROM prescription WHERE appointment_id IN
+    (SELECT appointment_id FROM appointment WHERE doctor_id = 2);
+DELETE 1
+DELETE FROM lab_record WHERE appointment_id IN
+    (SELECT appointment_id FROM appointment WHERE doctor_id = 2);
+DELETE 1
+DELETE FROM appointment WHERE doctor_id = 2;
+DELETE 3
+DELETE FROM patient WHERE patient_id = 5;
+DELETE 1
+DELETE FROM doctor WHERE doctor_id = 2;
+DELETE 1
+
+=== Leftover test rows (should all be 0) ===
+SELECT (SELECT count(*) FROM patient WHERE last_name IN ('Patient','Baby','Code','Nameless') AND first_name IN ('Test','Future','Bad')) AS test_patients,
+       (SELECT count(*) FROM doctor  WHERE first_name = 'Test' AND last_name = 'Doctor') AS test_doctors;
+ test_patients | test_doctors 
+---------------+--------------
+             0 |            0
+(1 row)
+
+
