@@ -1,0 +1,176 @@
+(base) oluwaferanmiola-davies@Oluwaferanmis-MacBook-Pro ~ % docker exec -it my-postgres psql -U postgres -h localhost -d hospital -f Ola-davies_Oluwaferanmi_301931917_explain-before.sql
+SET
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+DROP INDEX
+ANALYZE
+=============== BEFORE INDEXING ===============
+Timing is on.
+SET
+Time: 0.087 ms
+Time: 8.322 ms
+
+--- Q1: Retrieve patient history, patient_id = 10871 ---
+                                                           QUERY PLAN                                                           
+--------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=9568.58..9568.60 rows=5 width=131) (actual time=21.179..21.180 rows=17 loops=1)
+   Sort Key: a.scheduled_start
+   Sort Method: quicksort  Memory: 26kB
+   Buffers: shared hit=12565
+   ->  Nested Loop  (cost=0.00..9568.53 rows=5 width=131) (actual time=1.439..21.175 rows=17 loops=1)
+         Join Filter: (d.doctor_id = a.doctor_id)
+         Rows Removed by Join Filter: 833
+         Buffers: shared hit=12565
+         ->  Seq Scan on doctor d  (cost=0.00..1.50 rows=50 width=21) (actual time=0.002..0.004 rows=50 loops=1)
+               Buffers: shared hit=1
+         ->  Materialize  (cost=0.00..2390.03 rows=5 width=39) (actual time=0.001..0.037 rows=17 loops=50)
+               Buffers: shared hit=1140
+               ->  Seq Scan on appointment a  (cost=0.00..2390.00 rows=5 width=39) (actual time=0.038..1.808 rows=17 loops=1)
+                     Filter: (patient_id = 10871)
+                     Rows Removed by Filter: 99983
+                     Buffers: shared hit=1140
+         SubPlan 1
+           ->  Aggregate  (cost=954.51..954.52 rows=1 width=32) (actual time=0.736..0.736 rows=1 loops=17)
+                 Buffers: shared hit=7582
+                 ->  Seq Scan on prescription p  (cost=0.00..954.50 rows=1 width=16) (actual time=0.560..0.735 rows=0 loops=17)
+                       Filter: (appointment_id = a.appointment_id)
+                       Rows Removed by Filter: 40680
+                       Buffers: shared hit=7582
+         SubPlan 2
+           ->  Aggregate  (cost=480.12..480.13 rows=1 width=32) (actual time=0.399..0.399 rows=1 loops=17)
+                 Buffers: shared hit=3842
+                 ->  Seq Scan on lab_record l  (cost=0.00..480.11 rows=1 width=27) (actual time=0.349..0.399 rows=0 loops=17)
+                       Filter: (appointment_id = a.appointment_id)
+                       Rows Removed by Filter: 20329
+                       Buffers: shared hit=3842
+ Planning:
+   Buffers: shared hit=84
+ Planning Time: 0.142 ms
+ Execution Time: 21.199 ms
+(34 rows)
+
+Time: 21.752 ms
+
+--- Q2: One doctor's schedule for one day (doctor_id = 7, 2026-10-06) ---
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1405.86..1405.88 rows=11 width=72) (actual time=0.200..0.200 rows=14 loops=1)
+   Sort Key: a.scheduled_start
+   Sort Method: quicksort  Memory: 26kB
+   Buffers: shared hit=87
+   ->  Nested Loop  (cost=90.14..1405.67 rows=11 width=72) (actual time=0.118..0.198 rows=14 loops=1)
+         Buffers: shared hit=87
+         ->  Bitmap Heap Scan on appointment a  (cost=89.85..1314.26 rows=11 width=44) (actual time=0.115..0.159 rows=14 loops=1)
+               Recheck Cond: ((doctor_id = 7) AND ((status)::text <> 'cancelled'::text))
+               Filter: ((scheduled_start >= '2026-10-05 23:00:00+00'::timestamp with time zone) AND (scheduled_start < '2026-10-06 23:00:00+00'::timestamp with time zone))
+               Rows Removed by Filter: 1820
+               Heap Blocks: exact=24
+               Buffers: shared hit=45
+               ->  Bitmap Index Scan on no_doctor_double_booking  (cost=0.00..89.85 rows=1809 width=0) (actual time=0.095..0.095 rows=1834 loops=1)
+                     Index Cond: (doctor_id = 7)
+                     Buffers: shared hit=21
+         ->  Index Scan using patient_pkey on patient p  (cost=0.29..8.30 rows=1 width=16) (actual time=0.003..0.003 rows=1 loops=14)
+               Index Cond: (patient_id = a.patient_id)
+               Buffers: shared hit=42
+ Planning:
+   Buffers: shared hit=31
+ Planning Time: 0.080 ms
+ Execution Time: 0.543 ms
+(22 rows)
+
+Time: 0.959 ms
+
+--- Q3: Appointments per doctor, October 2026 ---
+                                                                                    QUERY PLAN                                                                                    
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=3081.66..3081.78 rows=50 width=89) (actual time=6.148..6.150 rows=50 loops=1)
+   Sort Key: (count(*) FILTER (WHERE ((a.status)::text = 'completed'::text))) DESC, d.doctor_id
+   Sort Method: quicksort  Memory: 30kB
+   Buffers: shared hit=1141
+   ->  HashAggregate  (cost=3079.49..3080.24 rows=50 width=89) (actual time=6.136..6.141 rows=50 loops=1)
+         Group Key: d.doctor_id
+         Batches: 1  Memory Usage: 24kB
+         Buffers: shared hit=1141
+         ->  Hash Join  (cost=2.12..2711.90 rows=24506 width=41) (actual time=0.029..4.472 rows=24800 loops=1)
+               Hash Cond: (a.doctor_id = d.doctor_id)
+               Buffers: shared hit=1141
+               ->  Seq Scan on appointment a  (cost=0.00..2640.00 rows=24506 width=12) (actual time=0.014..2.643 rows=24800 loops=1)
+                     Filter: ((scheduled_start >= '2026-09-30 23:00:00+00'::timestamp with time zone) AND (scheduled_start < '2026-10-31 23:00:00+00'::timestamp with time zone))
+                     Rows Removed by Filter: 75200
+                     Buffers: shared hit=1140
+               ->  Hash  (cost=1.50..1.50 rows=50 width=33) (actual time=0.008..0.008 rows=50 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 12kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on doctor d  (cost=0.00..1.50 rows=50 width=33) (actual time=0.001..0.003 rows=50 loops=1)
+                           Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=9
+ Planning Time: 0.070 ms
+ Execution Time: 6.162 ms
+(24 rows)
+
+Time: 6.448 ms
+
+--- Q4: Pending lab requests, oldest first ---
+                                                                       QUERY PLAN                                                                        
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3582.63..3604.39 rows=50 width=60) (actual time=6.602..7.252 rows=50 loops=1)
+   Buffers: shared hit=1834
+   ->  Nested Loop  (cost=3582.63..4913.27 rows=3057 width=60) (actual time=6.601..7.248 rows=50 loops=1)
+         Buffers: shared hit=1834
+         ->  Gather Merge  (cost=3582.34..3930.75 rows=3057 width=32) (actual time=6.596..7.116 rows=50 loops=1)
+               Workers Planned: 1
+               Workers Launched: 1
+               Buffers: shared hit=1684
+               ->  Sort  (cost=2582.33..2586.83 rows=1798 width=32) (actual time=4.955..4.965 rows=432 loops=2)
+                     Sort Key: l.requested_at
+                     Sort Method: quicksort  Memory: 218kB
+                     Buffers: shared hit=1684
+                     Worker 0:  Sort Method: quicksort  Memory: 70kB
+                     ->  Hash Join  (cost=518.33..2485.13 rows=1798 width=32) (actual time=1.017..4.793 rows=1528 loops=2)
+                           Hash Cond: (a.appointment_id = l.appointment_id)
+                           Buffers: shared hit=1641
+                           ->  Parallel Seq Scan on appointment a  (cost=0.00..1728.24 rows=58824 width=8) (actual time=0.003..1.597 rows=50000 loops=2)
+                                 Buffers: shared hit=1140
+                           ->  Hash  (cost=480.11..480.11 rows=3057 width=32) (actual time=0.994..0.994 rows=3057 loops=2)
+                                 Buckets: 4096  Batches: 1  Memory Usage: 235kB
+                                 Buffers: shared hit=452
+                                 ->  Seq Scan on lab_record l  (cost=0.00..480.11 rows=3057 width=32) (actual time=0.006..0.775 rows=3057 loops=2)
+                                       Filter: ((status)::text = 'requested'::text)
+                                       Rows Removed by Filter: 17272
+                                       Buffers: shared hit=452
+         ->  Index Scan using patient_pkey on patient p  (cost=0.29..0.32 rows=1 width=16) (actual time=0.002..0.002 rows=1 loops=50)
+               Index Cond: (patient_id = a.patient_id)
+               Buffers: shared hit=150
+ Planning:
+   Buffers: shared hit=32
+ Planning Time: 0.112 ms
+ Execution Time: 7.271 ms
+(32 rows)
+
+Time: 7.594 ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

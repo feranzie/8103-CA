@@ -1,0 +1,156 @@
+SET
+
+--- Q1: Retrieve patient history, patient_id = 10871 ---
+ appointment_id |    scheduled_start     |       doctor       |  status   |     diagnosis     |              prescriptions              |                lab_results                
+----------------+------------------------+--------------------+-----------+-------------------+-----------------------------------------+-------------------------------------------
+          86021 | 2026-09-02 09:00:00+00 | Doctor44 Surname44 | completed | Dermatitis        |                                         | 
+           2033 | 2026-09-03 07:00:00+00 | Doctor2 Surname2   | completed | Dermatitis        | Amlodipine 5mg, Folic acid 5mg          | Liver function test: Abnormal - see notes
+          20122 | 2026-09-08 11:30:00+00 | Doctor11 Surname11 | completed | Gastritis         | Ciprofloxacin 500mg                     | 
+          34190 | 2026-09-12 13:30:00+00 | Doctor18 Surname18 | completed | Lower back strain | Amlodipine 5mg                          | 
+          88362 | 2026-09-23 11:30:00+00 | Doctor45 Surname45 | completed | Hypertension      | Cetirizine 10mg                         | Malaria parasite test: Normal
+           6600 | 2026-10-08 10:30:00+00 | Doctor4 Surname4   | completed | Malaria           | Artemether-Lumefantrine                 | Malaria parasite test: pending
+          94615 | 2026-10-09 10:00:00+00 | Doctor48 Surname48 | completed | Migraine          | Artemether-Lumefantrine, Folic acid 5mg | 
+          82822 | 2026-10-22 09:30:00+00 | Doctor42 Surname42 | completed | Type 2 diabetes   |                                         | Liver function test: Positive
+           9148 | 2026-11-11 12:30:00+00 | Doctor5 Surname5   | cancelled |                   |                                         | 
+          37543 | 2026-12-06 10:00:00+00 | Doctor19 Surname19 | booked    |                   |                                         | 
+          69556 | 2026-12-07 08:30:00+00 | Doctor35 Surname35 | booked    |                   |                                         | 
+          41584 | 2026-12-08 14:30:00+00 | Doctor21 Surname21 | booked    |                   |                                         | 
+          33643 | 2026-12-12 12:00:00+00 | Doctor17 Surname17 | booked    |                   |                                         | 
+          73722 | 2026-12-17 11:30:00+00 | Doctor37 Surname37 | booked    |                   |                                         | 
+           1878 | 2026-12-27 09:30:00+00 | Doctor1 Surname1   | cancelled |                   |                                         | 
+          63898 | 2026-12-28 11:30:00+00 | Doctor32 Surname32 | booked    |                   |                                         | 
+          37918 | 2026-12-29 13:30:00+00 | Doctor19 Surname19 | booked    |                   |                                         | 
+(17 rows)
+
+
+--- Q2: One doctor's schedule for one day (doctor_id = 7, 2026-10-06) ---
+ appointment_id |    scheduled_start     |     scheduled_end      |     patient     |      reason      |  status   
+----------------+------------------------+------------------------+-----------------+------------------+-----------
+          12561 | 2026-10-06 07:00:00+00 | 2026-10-06 07:30:00+00 | Segun Adeleke   | Back pain        | completed
+          12562 | 2026-10-06 07:30:00+00 | 2026-10-06 08:00:00+00 | Emeka Eze       | Routine check-up | completed
+          12563 | 2026-10-06 08:00:00+00 | 2026-10-06 08:30:00+00 | Ibrahim Okonkwo | Chest pain       | completed
+          12564 | 2026-10-06 08:30:00+00 | 2026-10-06 09:00:00+00 | Emeka Eze       | Follow-up visit  | completed
+          12565 | 2026-10-06 09:00:00+00 | 2026-10-06 09:30:00+00 | Yusuf Adeleke   | Back pain        | completed
+          12566 | 2026-10-06 09:30:00+00 | 2026-10-06 10:00:00+00 | Bisi Ogunleye   | Skin rash        | completed
+          12568 | 2026-10-06 10:30:00+00 | 2026-10-06 11:00:00+00 | Ade Olawale     | Fever            | completed
+          12569 | 2026-10-06 11:00:00+00 | 2026-10-06 11:30:00+00 | Halima Obi      | Chest pain       | completed
+          12571 | 2026-10-06 12:00:00+00 | 2026-10-06 12:30:00+00 | Tunde Balogun   | Back pain        | completed
+          12572 | 2026-10-06 12:30:00+00 | 2026-10-06 13:00:00+00 | Halima Ajayi    | Back pain        | completed
+          12573 | 2026-10-06 13:00:00+00 | 2026-10-06 13:30:00+00 | Ade Obi         | Chest pain       | completed
+          12574 | 2026-10-06 13:30:00+00 | 2026-10-06 14:00:00+00 | Emeka Musa      | Back pain        | completed
+          12575 | 2026-10-06 14:00:00+00 | 2026-10-06 14:30:00+00 | Amaka Okafor    | Back pain        | completed
+          12576 | 2026-10-06 14:30:00+00 | 2026-10-06 15:00:00+00 | Amaka Okonkwo   | Chest pain       | completed
+(14 rows)
+
+
+--- Q3: Appointments per doctor, October 2026 ---
+ doctor_id |       doctor       |    specialty     | total_appointments | completed | cancelled 
+-----------+--------------------+------------------+--------------------+-----------+-----------
+        47 | Doctor47 Surname47 | Ophthalmology    |                496 |       474 |        22
+        25 | Doctor25 Surname25 | Cardiology       |                496 |       468 |        28
+         3 | Doctor3 Surname3   | Neurology        |                496 |       465 |        31
+         7 | Doctor7 Surname7   | Ophthalmology    |                496 |       465 |        31
+        30 | Doctor30 Surname30 | Gynaecology      |                496 |       465 |        31
+        45 | Doctor45 Surname45 | Dermatology      |                496 |       465 |        31
+        48 | Doctor48 Surname48 | General Practice |                496 |       464 |        32
+        23 | Doctor23 Surname23 | Ophthalmology    |                496 |       463 |        33
+        14 | Doctor14 Surname14 | Gynaecology      |                496 |       462 |        34
+        12 | Doctor12 Surname12 | Orthopaedics     |                496 |       461 |        35
+        13 | Doctor13 Surname13 | Dermatology      |                496 |       461 |        35
+        19 | Doctor19 Surname19 | Neurology        |                496 |       461 |        35
+        27 | Doctor27 Surname27 | Neurology        |                496 |       461 |        35
+        28 | Doctor28 Surname28 | Orthopaedics     |                496 |       461 |        35
+        37 | Doctor37 Surname37 | Dermatology      |                496 |       461 |        35
+        26 | Doctor26 Surname26 | Paediatrics      |                496 |       459 |        37
+        34 | Doctor34 Surname34 | Paediatrics      |                496 |       459 |        37
+        36 | Doctor36 Surname36 | Orthopaedics     |                496 |       459 |        37
+        44 | Doctor44 Surname44 | Orthopaedics     |                496 |       458 |        38
+        46 | Doctor46 Surname46 | Gynaecology      |                496 |       457 |        39
+         9 | Doctor9 Surname9   | Cardiology       |                496 |       456 |        40
+        17 | Doctor17 Surname17 | Cardiology       |                496 |       456 |        40
+        42 | Doctor42 Surname42 | Paediatrics      |                496 |       456 |        40
+        50 | Doctor50 Surname50 | Paediatrics      |                496 |       456 |        40
+         4 | Doctor4 Surname4   | Orthopaedics     |                496 |       455 |        41
+         6 | Doctor6 Surname6   | Gynaecology      |                496 |       455 |        41
+        11 | Doctor11 Surname11 | Neurology        |                496 |       455 |        41
+        18 | Doctor18 Surname18 | Paediatrics      |                496 |       455 |        41
+        43 | Doctor43 Surname43 | Neurology        |                496 |       455 |        41
+        10 | Doctor10 Surname10 | Paediatrics      |                496 |       454 |        42
+        16 | Doctor16 Surname16 | General Practice |                496 |       454 |        42
+        20 | Doctor20 Surname20 | Orthopaedics     |                496 |       454 |        42
+        29 | Doctor29 Surname29 | Dermatology      |                496 |       454 |        42
+        32 | Doctor32 Surname32 | General Practice |                496 |       454 |        42
+        40 | Doctor40 Surname40 | General Practice |                496 |       454 |        42
+         1 | Doctor1 Surname1   | Cardiology       |                496 |       453 |        43
+        39 | Doctor39 Surname39 | Ophthalmology    |                496 |       453 |        43
+        22 | Doctor22 Surname22 | Gynaecology      |                496 |       451 |        45
+        31 | Doctor31 Surname31 | Ophthalmology    |                496 |       451 |        45
+        33 | Doctor33 Surname33 | Cardiology       |                496 |       451 |        45
+        35 | Doctor35 Surname35 | Neurology        |                496 |       450 |        46
+        49 | Doctor49 Surname49 | Cardiology       |                496 |       450 |        46
+         8 | Doctor8 Surname8   | General Practice |                496 |       449 |        47
+        24 | Doctor24 Surname24 | General Practice |                496 |       449 |        47
+        38 | Doctor38 Surname38 | Gynaecology      |                496 |       449 |        47
+        21 | Doctor21 Surname21 | Dermatology      |                496 |       448 |        48
+        41 | Doctor41 Surname41 | Cardiology       |                496 |       447 |        49
+         5 | Doctor5 Surname5   | Dermatology      |                496 |       445 |        51
+        15 | Doctor15 Surname15 | Ophthalmology    |                496 |       445 |        51
+         2 | Doctor2 Surname2   | Paediatrics      |                496 |       444 |        52
+(50 rows)
+
+
+--- Q4: Pending lab requests, oldest first ---
+ lab_record_id |       test_name       |      requested_at      |    patient     
+---------------+-----------------------+------------------------+----------------
+             1 | Widal test            | 2026-09-01 07:10:00+00 | Funke Obi
+          4534 | Kidney function test  | 2026-09-01 07:10:00+00 | Kunle Musa
+          8552 | Lipid profile         | 2026-09-01 07:10:00+00 | Ade Balogun
+         10977 | Full blood count      | 2026-09-01 07:10:00+00 | Ade Nwosu
+         16227 | Kidney function test  | 2026-09-01 07:10:00+00 | Segun Bello
+          2088 | Liver function test   | 2026-09-01 08:10:00+00 | Chika Obi
+         13818 | Urinalysis            | 2026-09-01 08:10:00+00 | Halima Bello
+         14596 | Kidney function test  | 2026-09-01 08:10:00+00 | Yusuf Lawal
+           404 | Kidney function test  | 2026-09-01 08:40:00+00 | Ngozi Okonkwo
+          2089 | Kidney function test  | 2026-09-01 09:10:00+00 | Halima Musa
+          5757 | Kidney function test  | 2026-09-01 09:10:00+00 | Ngozi Eze
+         13418 | Full blood count      | 2026-09-01 09:10:00+00 | Halima Ajayi
+         19136 | Urinalysis            | 2026-09-01 09:10:00+00 | Aisha Adeleke
+          1679 | Kidney function test  | 2026-09-01 09:40:00+00 | Halima Adeleke
+          9743 | Malaria parasite test | 2026-09-01 09:40:00+00 | Ibrahim Obi
+           406 | Urinalysis            | 2026-09-01 10:10:00+00 | Ade Adeyemi
+          1680 | Widal test            | 2026-09-01 10:10:00+00 | Segun Olawale
+          4152 | Malaria parasite test | 2026-09-01 10:10:00+00 | Kunle Adeleke
+          6946 | Widal test            | 2026-09-01 10:10:00+00 | Yusuf Musa
+         13821 | Kidney function test  | 2026-09-01 10:10:00+00 | Bisi Okonkwo
+         19138 | Lipid profile         | 2026-09-01 10:10:00+00 | Tunde Ogunleye
+           829 | Blood glucose         | 2026-09-01 10:40:00+00 | Ngozi Ajayi
+         10170 | Lipid profile         | 2026-09-01 10:40:00+00 | Kunle Okafor
+          3298 | Kidney function test  | 2026-09-01 11:10:00+00 | Aisha Ajayi
+         15434 | Lipid profile         | 2026-09-01 11:10:00+00 | Ade Obi
+          7757 | Urinalysis            | 2026-09-01 11:40:00+00 | Kunle Eze
+          8165 | Liver function test   | 2026-09-01 11:40:00+00 | Ngozi Nwosu
+         11799 | Kidney function test  | 2026-09-01 11:40:00+00 | Amaka Lawal
+         13421 | Kidney function test  | 2026-09-01 11:40:00+00 | Chika Nwosu
+          2899 | Liver function test   | 2026-09-01 12:10:00+00 | Emeka Musa
+          4155 | Widal test            | 2026-09-01 12:10:00+00 | Emeka Ogunleye
+          9324 | Kidney function test  | 2026-09-01 12:10:00+00 | Halima Balogun
+         11386 | Blood glucose         | 2026-09-01 12:10:00+00 | Amaka Bello
+          7351 | Lipid profile         | 2026-09-01 12:40:00+00 | Bisi Obi
+         13422 | Widal test            | 2026-09-01 12:40:00+00 | Amaka Musa
+         16230 | Liver function test   | 2026-09-01 12:40:00+00 | Funke Bello
+         15823 | Widal test            | 2026-09-01 13:40:00+00 | Segun Eze
+          5348 | Liver function test   | 2026-09-01 14:10:00+00 | Segun Adeyemi
+          6159 | Malaria parasite test | 2026-09-01 14:10:00+00 | Segun Ajayi
+         14601 | Urinalysis            | 2026-09-01 14:10:00+00 | Amaka Adeyemi
+          4537 | Blood glucose         | 2026-09-01 14:40:00+00 | Halima Balogun
+          7759 | Full blood count      | 2026-09-01 14:40:00+00 | Kunle Ogunleye
+         12192 | Full blood count      | 2026-09-01 14:40:00+00 | Tunde Adeyemi
+         12597 | Lipid profile         | 2026-09-01 14:40:00+00 | Chidi Eze
+          5763 | Lipid profile         | 2026-09-02 07:10:00+00 | Yusuf Bello
+         17910 | Full blood count      | 2026-09-02 07:10:00+00 | Amaka Eze
+         14201 | Malaria parasite test | 2026-09-02 07:40:00+00 | Emeka Adeleke
+         19944 | Lipid profile         | 2026-09-02 07:40:00+00 | Halima Bello
+         13424 | Liver function test   | 2026-09-02 08:10:00+00 | Tunde Ogunleye
+          8558 | Urinalysis            | 2026-09-02 08:40:00+00 | Kunle Adeyemi
+(50 rows)
+

@@ -1,0 +1,24 @@
+SET
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:4: ERROR:  relation "idx_appointment_patient" already exists
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:7: ERROR:  relation "idx_prescription_appointment" already exists
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:8: ERROR:  relation "idx_lab_record_appointment" already exists
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:11: ERROR:  relation "idx_appointment_doctor_start" already exists
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:14: ERROR:  relation "idx_appointment_start" already exists
+psql:Ola-davies_Oluwaferanmi_301931917_indexes.sql:18: ERROR:  relation "idx_lab_record_pending" already exists
+ANALYZE
+          index_name          |  table_name  |  size   
+------------------------------+--------------+---------
+ appointment_pkey             | appointment  | 2208 kB
+ idx_appointment_doctor_start | appointment  | 3104 kB
+ idx_appointment_patient      | appointment  | 1168 kB
+ idx_appointment_start        | appointment  | 712 kB
+ no_doctor_double_booking     | appointment  | 7696 kB
+ doctor_pkey                  | doctor       | 16 kB
+ idx_lab_record_appointment   | lab_record   | 464 kB
+ idx_lab_record_pending       | lab_record   | 64 kB
+ lab_record_pkey              | lab_record   | 464 kB
+ patient_pkey                 | patient      | 456 kB
+ idx_prescription_appointment | prescription | 880 kB
+ prescription_pkey            | prescription | 912 kB
+(12 rows)
+
