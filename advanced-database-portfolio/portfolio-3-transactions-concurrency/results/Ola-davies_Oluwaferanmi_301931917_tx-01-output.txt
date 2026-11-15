@@ -1,0 +1,120 @@
+SET
+DELETE 3
+DELETE 1
+DELETE 2
+DELETE 1
+DELETE 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+SET search_path TO hospital;
+SET
+
+=== 1A: COMMIT. Complete a consultation as ONE atomic unit ===
+    Diagnosis + prescription + lab request all succeed together.
+BEGIN;
+BEGIN
+UPDATE appointment
+   SET status = 'completed', diagnosis = 'Hypertension'
+ WHERE appointment_id = 900002;
+UPDATE 1
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900002, 'Amlodipine 5mg', '1 tablet', 'Once daily', 30);
+INSERT 0 1
+INSERT INTO lab_record (appointment_id, test_name)
+VALUES (900002, 'Lipid profile');
+INSERT 0 1
+COMMIT;
+COMMIT
+--- Result after COMMIT: all three changes are permanent ---
+SELECT a.status, a.diagnosis,
+       (SELECT count(*) FROM prescription p WHERE p.appointment_id = a.appointment_id) AS prescriptions,
+       (SELECT count(*) FROM lab_record   l WHERE l.appointment_id = a.appointment_id) AS lab_requests
+FROM appointment a WHERE a.appointment_id = 900002;
+  status   |  diagnosis   | prescriptions | lab_requests 
+-----------+--------------+---------------+--------------
+ completed | Hypertension |             1 |            1
+(1 row)
+
+
+=== 1B: ROLLBACK. Cancel a booking before it is committed ===
+BEGIN;
+BEGIN
+INSERT INTO appointment (appointment_id, patient_id, doctor_id, scheduled_start, scheduled_end)
+VALUES (900003, 900001, 900001, TIMESTAMPTZ '2030-06-01 11:00+00', TIMESTAMPTZ '2030-06-01 11:30+00');
+INSERT 0 1
+--- Inside the transaction the new appointment is visible (count = 1) ---
+SELECT count(*) AS visible_inside_transaction FROM appointment WHERE appointment_id = 900003;
+ visible_inside_transaction 
+----------------------------
+                          1
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+--- After ROLLBACK it is gone (count = 0) ---
+SELECT count(*) AS visible_after_rollback FROM appointment WHERE appointment_id = 900003;
+ visible_after_rollback 
+------------------------
+                      0
+(1 row)
+
+
+=== 1C: ATOMICITY. One failing statement undoes the whole transaction ===
+    The second prescription breaks CHECK (duration_days > 0).
+BEGIN;
+BEGIN
+UPDATE appointment
+   SET status = 'completed', diagnosis = 'Typhoid fever'
+ WHERE appointment_id = 900001;
+UPDATE 1
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900001, 'Ciprofloxacin 500mg', '1 tablet', 'Twice daily', 7);
+INSERT 0 1
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900001, 'Paracetamol 500mg', '1 tablet', 'Twice daily', 0);
+--- The transaction is now in an aborted state: every further command is refused ---
+SELECT 1;
+psql:Ola-davies_Oluwaferanmi_301931917_tx-01-commit-rollback.sql:46: ERROR:  new row for relation "prescription" violates check constraint "prescription_duration_days_check"
+DETAIL:  Failing row contains (40689, 900001, Paracetamol 500mg, 1 tablet, Twice daily, 0, 2026-11-10 22:48:04.628688+00).
+ROLLBACK;
+psql:Ola-davies_Oluwaferanmi_301931917_tx-01-commit-rollback.sql:48: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+--- After ROLLBACK: status and diagnosis are unchanged and no prescription was saved ---
+SELECT a.status, a.diagnosis,
+       (SELECT count(*) FROM prescription p WHERE p.appointment_id = a.appointment_id) AS prescriptions
+FROM appointment a WHERE a.appointment_id = 900001;
+ status | diagnosis | prescriptions 
+--------+-----------+---------------
+ booked | Malaria   |             0
+(1 row)
+
+
+=== 1D: SAVEPOINT. Undo only the failed step, keep the rest ===
+BEGIN;
+BEGIN
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900001, 'Paracetamol 500mg', '1 tablet', 'Three times daily', 5);
+INSERT 0 1
+SAVEPOINT before_second_drug;
+SAVEPOINT
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900001, 'Ibuprofen 400mg', '1 tablet', 'Twice daily', -1);
+psql:Ola-davies_Oluwaferanmi_301931917_tx-01-commit-rollback.sql:62: ERROR:  new row for relation "prescription" violates check constraint "prescription_duration_days_check"
+DETAIL:  Failing row contains (40691, 900001, Ibuprofen 400mg, 1 tablet, Twice daily, -1, 2026-11-10 22:48:04.629387+00).
+ROLLBACK TO SAVEPOINT before_second_drug;
+ROLLBACK
+--- Retry the second drug with a valid duration ---
+INSERT INTO prescription (appointment_id, drug_name, dosage, frequency, duration_days)
+VALUES (900001, 'Ibuprofen 400mg', '1 tablet', 'Twice daily', 3);
+INSERT 0 1
+COMMIT;
+COMMIT
+--- Both valid prescriptions were saved; the bad attempt left no trace ---
+SELECT drug_name, duration_days FROM prescription WHERE appointment_id = 900001 ORDER BY prescription_id;
+     drug_name     | duration_days 
+-------------------+---------------
+ Paracetamol 500mg |             5
+ Ibuprofen 400mg   |             3
+(2 rows)
+
