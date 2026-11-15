@@ -1,6 +1,7 @@
 # MIT 8103 Advanced Database Systems: Individual Practical Database Portfolio
 
-**Student:** Oluwaferanmi Ola-davies | **Student ID:** 301931917 | **Session:** 2026/2027, First Semester
+**Student:** Oluwaferanmi Ola-davies | **Student ID:** 301931917 | **Session:** 2026/2027, First Semester **Github repository:** https://github.com/feranzie/Ola-davies_Oluwaferanmi_301931917.git
+
 
 ## Case study
 
@@ -146,3 +147,17 @@ docker compose -f Ola-davies_Oluwaferanmi_301931917_05-mongo-sharded-compose.yml
 ## Academic integrity and AI use
 
 AI assistance (Claude, Anthropic) was used as a learning aid and for first drafts of some scripts . All scripts were run and checked by me, and the evidence in this repository comes from my own runs. The full AI Use Declaration is in the LMS submission document.
+
+## References
+
+- [PostgreSQL: constraints](https://www.postgresql.org/docs/16/ddl-constraints.html)
+- [PostgreSQL: partial indexes](https://www.postgresql.org/docs/16/indexes-partial.html)
+- [PostgreSQL: EXPLAIN](https://www.postgresql.org/docs/16/using-explain.html)
+- [PostgreSQL: isolation](https://www.postgresql.org/docs/16/transaction-iso.html)
+- [PostgreSQL: row locks](https://www.postgresql.org/docs/16/explicit-locking.html)
+- [PostgreSQL: high availability](https://www.postgresql.org/docs/16/high-availability.html)
+- [MongoDB: data modelling](https://www.mongodb.com/docs/manual/data-modeling/)
+- [MongoDB: schema validation](https://www.mongodb.com/docs/manual/core/schema-validation/)
+- [MongoDB: replication](https://www.mongodb.com/docs/manual/replication/)
+- [MongoDB: write concern](https://www.mongodb.com/docs/manual/reference/write-concern/)
+- [MongoDB: sharding](https://www.mongodb.com/docs/manual/sharding/)
