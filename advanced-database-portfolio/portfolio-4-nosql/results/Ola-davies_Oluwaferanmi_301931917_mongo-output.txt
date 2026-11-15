@@ -1,0 +1,467 @@
+=== 0. IMPORT CHECK ===
+patients: 20000 | doctors: 50
+appointments embedded inside patient documents: 100000
+
+=== 1. RETRIEVE PATIENT HISTORY (one read, no joins), patient _id = 1 ===
+{
+  _id: 1,
+  first_name: 'Aisha',
+  last_name: 'Nwosu',
+  date_of_birth: ISODate('1964-01-11T00:00:00.000Z'),
+  sex: 'M',
+  phone: '08020000001',
+  address: '179 Sample Street, Ibadan',
+  appointments: [
+    {
+      appointment_id: 82340,
+      doctor: {
+        doctor_id: 42,
+        name: 'Doctor42 Surname42',
+        specialty: 'Paediatrics'
+      },
+      scheduled_start: ISODate('2026-09-22T08:30:00.000Z'),
+      scheduled_end: ISODate('2026-09-22T09:00:00.000Z'),
+      status: 'completed',
+      reason: 'Routine check-up',
+      diagnosis: 'Dermatitis',
+      prescriptions: [
+        {
+          drug_name: 'Omeprazole 20mg',
+          dosage: '2 tablets',
+          frequency: 'Twice daily',
+          duration_days: 30,
+          issued_at: ISODate('2026-09-22T08:50:00.000Z')
+        }
+      ],
+      lab_records: [
+        {
+          test_name: 'Widal test',
+          result_value: 'Abnormal - see notes',
+          status: 'completed',
+          requested_at: ISODate('2026-09-22T08:40:00.000Z'),
+          resulted_at: ISODate('2026-09-22T11:40:00.000Z')
+        }
+      ]
+    },
+    {
+      appointment_id: 68371,
+      doctor: {
+        doctor_id: 35,
+        name: 'Doctor35 Surname35',
+        specialty: 'Neurology'
+      },
+      scheduled_start: ISODate('2026-09-24T08:00:00.000Z'),
+      scheduled_end: ISODate('2026-09-24T08:30:00.000Z'),
+      status: 'completed',
+      reason: 'Routine check-up',
+      diagnosis: 'Lower back strain',
+      prescriptions: [
+        {
+          drug_name: 'Artemether-Lumefantrine',
+          dosage: '1 tablet',
+          frequency: 'Three times daily',
+          duration_days: 14,
+          issued_at: ISODate('2026-09-24T08:20:00.000Z')
+        }
+      ],
+      lab_records: [
+        {
+          test_name: 'Urinalysis',
+          result_value: 'Normal',
+          status: 'completed',
+          requested_at: ISODate('2026-09-24T08:10:00.000Z'),
+          resulted_at: ISODate('2026-09-24T15:10:00.000Z')
+        }
+      ]
+    },
+    {
+      appointment_id: 84394,
+      doctor: {
+        doctor_id: 43,
+        name: 'Doctor43 Surname43',
+        specialty: 'Neurology'
+      },
+      scheduled_start: ISODate('2026-09-25T11:30:00.000Z'),
+      scheduled_end: ISODate('2026-09-25T12:00:00.000Z'),
+      status: 'completed',
+      reason: 'Skin rash',
+      diagnosis: 'Typhoid fever',
+      prescriptions: [
+        {
+          drug_name: 'Salbutamol inhaler',
+          dosage: '1 tablet',
+          frequency: 'Once daily',
+          duration_days: 7,
+          issued_at: ISODate('2026-09-25T11:52:00.000Z')
+        }
+      ],
+      lab_records: [
+        {
+          test_name: 'Liver function test',
+          result_value: 'Negative',
+          status: 'completed',
+          requested_at: ISODate('2026-09-25T11:40:00.000Z'),
+          resulted_at: ISODate('2026-09-25T15:40:00.000Z')
+        }
+      ]
+    },
+    {
+      appointment_id: 34719,
+      doctor: {
+        doctor_id: 18,
+        name: 'Doctor18 Surname18',
+        specialty: 'Paediatrics'
+      },
+      scheduled_start: ISODate('2026-10-15T14:00:00.000Z'),
+      scheduled_end: ISODate('2026-10-15T14:30:00.000Z'),
+      status: 'completed',
+      reason: 'Headache',
+      diagnosis: 'Healthy - no issue found',
+      prescriptions: [
+        {
+          drug_name: 'Ibuprofen 400mg',
+          dosage: '2 tablets',
+          frequency: 'Three times daily',
+          duration_days: 7,
+          issued_at: ISODate('2026-10-15T14:20:00.000Z')
+        }
+      ],
+      lab_records: []
+    },
+    {
+      appointment_id: 66977,
+      doctor: {
+        doctor_id: 34,
+        name: 'Doctor34 Surname34',
+        specialty: 'Paediatrics'
+      },
+      scheduled_start: ISODate('2026-11-01T07:00:00.000Z'),
+      scheduled_end: ISODate('2026-11-01T07:30:00.000Z'),
+      status: 'completed',
+      reason: 'Routine check-up',
+      diagnosis: 'Upper respiratory infection',
+      prescriptions: [],
+      lab_records: []
+    },
+    {
+      appointment_id: 63327,
+      doctor: {
+        doctor_id: 32,
+        name: 'Doctor32 Surname32',
+        specialty: 'General Practice'
+      },
+      scheduled_start: ISODate('2026-11-22T14:00:00.000Z'),
+      scheduled_end: ISODate('2026-11-22T14:30:00.000Z'),
+      status: 'booked',
+      reason: 'Back pain',
+      diagnosis: null,
+      prescriptions: [],
+      lab_records: []
+    },
+    {
+      appointment_id: 29590,
+      doctor: {
+        doctor_id: 15,
+        name: 'Doctor15 Surname15',
+        specialty: 'Ophthalmology'
+      },
+      scheduled_start: ISODate('2026-12-09T09:30:00.000Z'),
+      scheduled_end: ISODate('2026-12-09T10:00:00.000Z'),
+      status: 'cancelled',
+      reason: 'Back pain',
+      diagnosis: null,
+      prescriptions: [],
+      lab_records: []
+    },
+    {
+      appointment_id: 95645,
+      doctor: {
+        doctor_id: 48,
+        name: 'Doctor48 Surname48',
+        specialty: 'General Practice'
+      },
+      scheduled_start: ISODate('2026-12-12T13:00:00.000Z'),
+      scheduled_end: ISODate('2026-12-12T13:30:00.000Z'),
+      status: 'cancelled',
+      reason: 'Back pain',
+      diagnosis: null,
+      prescriptions: [],
+      lab_records: []
+    },
+    {
+      appointment_id: 25717,
+      doctor: {
+        doctor_id: 13,
+        name: 'Doctor13 Surname13',
+        specialty: 'Dermatology'
+      },
+      scheduled_start: ISODate('2026-12-17T09:00:00.000Z'),
+      scheduled_end: ISODate('2026-12-17T09:30:00.000Z'),
+      status: 'booked',
+      reason: 'Routine check-up',
+      diagnosis: null,
+      prescriptions: [],
+      lab_records: []
+    }
+  ]
+}
+
+=== 2. BOOK AN APPOINTMENT ($push into the patient's appointments array) ===
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+--- the new appointment as stored ---
+{
+  _id: 1,
+  appointments: [
+    {
+      appointment_id: 900001,
+      doctor: {
+        doctor_id: 7,
+        name: 'Doctor7 Surname7',
+        specialty: 'Ophthalmology'
+      },
+      scheduled_start: ISODate('2030-06-01T09:00:00.000Z'),
+      scheduled_end: ISODate('2030-06-01T09:30:00.000Z'),
+      status: 'booked',
+      reason: 'Routine check-up',
+      diagnosis: null,
+      prescriptions: [],
+      lab_records: []
+    }
+  ]
+}
+
+=== 3. STORE A DIAGNOSIS (status + diagnosis + prescription + lab request in ONE atomic update) ===
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+{
+  _id: 1,
+  appointments: [
+    {
+      appointment_id: 900001,
+      doctor: {
+        doctor_id: 7,
+        name: 'Doctor7 Surname7',
+        specialty: 'Ophthalmology'
+      },
+      scheduled_start: ISODate('2030-06-01T09:00:00.000Z'),
+      scheduled_end: ISODate('2030-06-01T09:30:00.000Z'),
+      status: 'completed',
+      reason: 'Routine check-up',
+      diagnosis: 'Malaria',
+      prescriptions: [
+        {
+          drug_name: 'Artemether-Lumefantrine',
+          dosage: '4 tablets',
+          frequency: 'Twice daily',
+          duration_days: 3,
+          issued_at: ISODate('2026-11-15T15:49:59.753Z')
+        }
+      ],
+      lab_records: [
+        {
+          test_name: 'Malaria parasite test',
+          result_value: null,
+          status: 'requested',
+          requested_at: ISODate('2026-11-15T15:49:59.753Z'),
+          resulted_at: null
+        }
+      ]
+    }
+  ]
+}
+
+=== 4. PENDING LAB REQUESTS, oldest first (aggregation: $unwind, $match, $sort) ===
+{
+  patient: 'Kunle Musa',
+  test_name: 'Kidney function test',
+  requested_at: ISODate('2026-09-01T07:10:00.000Z')
+}
+{
+  patient: 'Funke Obi',
+  test_name: 'Widal test',
+  requested_at: ISODate('2026-09-01T07:10:00.000Z')
+}
+{
+  patient: 'Ade Balogun',
+  test_name: 'Lipid profile',
+  requested_at: ISODate('2026-09-01T07:10:00.000Z')
+}
+{
+  patient: 'Segun Bello',
+  test_name: 'Kidney function test',
+  requested_at: ISODate('2026-09-01T07:10:00.000Z')
+}
+{
+  patient: 'Ade Nwosu',
+  test_name: 'Full blood count',
+  requested_at: ISODate('2026-09-01T07:10:00.000Z')
+}
+
+=== 5. APPOINTMENTS PER DOCTOR, OCTOBER 2026 (compare with SQL Q3) ===
+{
+  _id: 47,
+  doctor: 'Doctor47 Surname47',
+  total_appointments: 496,
+  completed: 474,
+  cancelled: 22
+}
+{
+  _id: 25,
+  doctor: 'Doctor25 Surname25',
+  total_appointments: 496,
+  completed: 468,
+  cancelled: 28
+}
+{
+  _id: 3,
+  doctor: 'Doctor3 Surname3',
+  total_appointments: 496,
+  completed: 465,
+  cancelled: 31
+}
+{
+  _id: 7,
+  doctor: 'Doctor7 Surname7',
+  total_appointments: 496,
+  completed: 465,
+  cancelled: 31
+}
+{
+  _id: 30,
+  doctor: 'Doctor30 Surname30',
+  total_appointments: 496,
+  completed: 465,
+  cancelled: 31
+}
+
+=== 6. DOCTOR 7'S SCHEDULE FOR 2026-10-06 ===
+{
+  patient: 'Segun Adeleke',
+  start: ISODate('2026-10-06T07:00:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Emeka Eze',
+  start: ISODate('2026-10-06T07:30:00.000Z'),
+  reason: 'Routine check-up'
+}
+{
+  patient: 'Ibrahim Okonkwo',
+  start: ISODate('2026-10-06T08:00:00.000Z'),
+  reason: 'Chest pain'
+}
+{
+  patient: 'Emeka Eze',
+  start: ISODate('2026-10-06T08:30:00.000Z'),
+  reason: 'Follow-up visit'
+}
+{
+  patient: 'Yusuf Adeleke',
+  start: ISODate('2026-10-06T09:00:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Bisi Ogunleye',
+  start: ISODate('2026-10-06T09:30:00.000Z'),
+  reason: 'Skin rash'
+}
+{
+  patient: 'Ade Olawale',
+  start: ISODate('2026-10-06T10:30:00.000Z'),
+  reason: 'Fever'
+}
+{
+  patient: 'Halima Obi',
+  start: ISODate('2026-10-06T11:00:00.000Z'),
+  reason: 'Chest pain'
+}
+{
+  patient: 'Tunde Balogun',
+  start: ISODate('2026-10-06T12:00:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Halima Ajayi',
+  start: ISODate('2026-10-06T12:30:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Ade Obi',
+  start: ISODate('2026-10-06T13:00:00.000Z'),
+  reason: 'Chest pain'
+}
+{
+  patient: 'Emeka Musa',
+  start: ISODate('2026-10-06T13:30:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Amaka Okafor',
+  start: ISODate('2026-10-06T14:00:00.000Z'),
+  reason: 'Back pain'
+}
+{
+  patient: 'Amaka Okonkwo',
+  start: ISODate('2026-10-06T14:30:00.000Z'),
+  reason: 'Chest pain'
+}
+
+=== 7a. PATIENT HISTORY LOOKUP uses the built-in _id index ===
+{
+  plan: 'COLLSCAN',
+  keysExamined: 1,
+  docsExamined: 1,
+  nReturned: 1,
+  millis: 0
+}
+
+=== 7b. DOCTOR SCHEDULE: BEFORE adding an index ===
+{
+  plan: 'COLLSCAN',
+  keysExamined: 0,
+  docsExamined: 20000,
+  nReturned: 14,
+  millis: 9
+}
+
+=== 7c. DOCTOR SCHEDULE: AFTER adding a compound multikey index ===
+created index: idx_doctor_start
+{
+  plan: 'IXSCAN',
+  keysExamined: 16,
+  docsExamined: 16,
+  nReturned: 14,
+  millis: 0
+}
+
+=== 7d. INDEXES ON THE patients COLLECTION ===
+[
+  {
+    v: 2,
+    key: {
+      _id: 1
+    },
+    name: '_id_'
+  },
+  {
+    v: 2,
+    key: {
+      'appointments.doctor.doctor_id': 1,
+      'appointments.scheduled_start': 1
+    },
+    name: 'idx_doctor_start'
+  }
+]
+
+=== Demo booking removed. Done. ===
