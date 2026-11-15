@@ -1,0 +1,29 @@
+#  small sharded cluster
+#   1 config server + 2 shards + 1 router (mongos) + 1 idle client
+
+services:
+  cfg1:
+    image: mongo:7
+    container_name: cfg1
+    command: mongod --configsvr --replSet cfgrs --port 27017 --bind_ip_all
+  shard1:
+    image: mongo:7
+    container_name: shard1
+    command: mongod --shardsvr --replSet shard1rs --port 27017 --bind_ip_all
+  shard2:
+    image: mongo:7
+    container_name: shard2
+    command: mongod --shardsvr --replSet shard2rs --port 27017 --bind_ip_all
+  mongos:
+    image: mongo:7
+    container_name: mongos
+    command: mongos --configdb cfgrs/cfg1:27017 --bind_ip_all --port 27017
+    depends_on:
+      - cfg1
+      - shard1
+      - shard2
+    restart: on-failure
+  sclient:
+    image: mongo:7
+    container_name: sclient
+    command: sleep infinity
