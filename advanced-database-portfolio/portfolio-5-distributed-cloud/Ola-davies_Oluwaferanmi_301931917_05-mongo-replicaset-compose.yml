@@ -1,0 +1,23 @@
+#  3-node replica set
+
+services:
+  rs1:
+    image: mongo:7
+    container_name: rs1
+    command: mongod --replSet hospitalrs --bind_ip_all --port 27017
+  rs2:
+    image: mongo:7
+    container_name: rs2
+    command: mongod --replSet hospitalrs --bind_ip_all --port 27017
+  rs3:
+    image: mongo:7
+    container_name: rs3
+    command: mongod --replSet hospitalrs --bind_ip_all --port 27017
+  mclient:
+    image: mongo:7
+    container_name: mclient
+    command: sleep infinity
+    depends_on:
+      - rs1
+      - rs2
+      - rs3
